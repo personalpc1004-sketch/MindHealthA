@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { supabase } from "@/lib/client";
+import { useAuth } from "@/app/context/Authprovider";
 
 import {
     Card,
@@ -43,6 +44,7 @@ function GoogleIcon(props) {
 
 export default function Login() {
     const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -50,6 +52,27 @@ export default function Login() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
+
+    // If user is already authenticated (or hash token is processed), redirect to Dashboard
+    useEffect(() => {
+        if (user) {
+            router.push("/Dashboard");
+            router.refresh();
+        }
+    }, [user, router]);
+
+    // Handle hash fragments (access_token) in case OAuth returns to login directly
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.location.hash.includes("access_token")) {
+            setLoading(true);
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    router.push("/Dashboard");
+                    router.refresh();
+                }
+            });
+        }
+    }, [router]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -68,7 +91,7 @@ export default function Login() {
             return;
         }
 
-        router.push("/");
+        router.push("/Dashboard");
         router.refresh();
     };
 
@@ -79,7 +102,7 @@ export default function Login() {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
-                redirectTo: `${window.location.origin}/auth/callback`,
+                redirectTo: `${window.location.origin}/auth/callback?next=/Dashboard`,
             },
         });
 
@@ -88,6 +111,14 @@ export default function Login() {
             setGoogleLoading(false);
         }
     };
+
+    if (authLoading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-background">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+        );
+    }
 
     return (
         <div className="flex min-h-screen items-center justify-center px-4">
