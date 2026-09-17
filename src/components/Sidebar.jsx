@@ -2,6 +2,16 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import {
+    Brain,
+    LayoutDashboard,
+    BookOpen,
+    Activity,
+    Wrench,
+    User,
+    LogOut,
+} from "lucide-react";
+
 import { useAuth } from "@/app/context/Authprovider";
 import { supabase } from "@/lib/client";
 import { Button } from "@/components/ui/button";
@@ -13,11 +23,11 @@ export default function Sidebar() {
     const { user } = useAuth();
 
     const navLinks = [
-        { href: "/Dashboard", label: "Dashboard", icon: "📊" },
-        { href: "/Journal", label: "Journal", icon: "📖" },
-        { href: "/Exercises", label: "Exercises", icon: "🧘" },
-        { href: "/Tools", label: "Tools", icon: "🛠️" },
-        { href: "/Profile", label: "Profile", icon: "👤" },
+        { href: "/Dashboard", label: "Dashboard", icon: LayoutDashboard },
+        { href: "/Journal", label: "Journal", icon: BookOpen },
+        { href: "/Exercises", label: "Exercises", icon: Activity },
+        { href: "/Tools", label: "Tools", icon: Wrench },
+        { href: "/Profile", label: "Profile", icon: User },
     ];
 
     const handleSignOut = async () => {
@@ -30,8 +40,8 @@ export default function Sidebar() {
         <aside className="w-64 h-screen bg-card border-r border-border flex flex-col fixed left-0 top-0 z-40 shadow-sm">
             {/* Logo */}
             <div className="h-16 px-6 border-b border-border flex items-center gap-3">
-                <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg shadow-sm">
-                    🧠
+                <div className="h-9 w-9 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold shadow-sm">
+                    <Brain className="h-5 w-5" />
                 </div>
                 <span className="font-bold text-xl tracking-tight text-foreground">
                     MindHealthAI
@@ -41,6 +51,7 @@ export default function Sidebar() {
             {/* Navigation Links */}
             <nav className="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
                 {navLinks.map((link) => {
+                    const Icon = link.icon;
                     const isActive = pathname === link.href;
                     return (
                         <Link
@@ -53,7 +64,7 @@ export default function Sidebar() {
                                     : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                             )}
                         >
-                            <span className="text-lg">{link.icon}</span>
+                            <Icon className="h-4 w-4" />
                             <span>{link.label}</span>
                         </Link>
                     );
@@ -80,7 +91,7 @@ export default function Sidebar() {
                         className="w-full justify-start gap-2 text-xs"
                         onClick={handleSignOut}
                     >
-                        <span>🚪</span>
+                        <LogOut className="h-3.5 w-3.5" />
                         <span>Log Out</span>
                     </Button>
                 </div>
