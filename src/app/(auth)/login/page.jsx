@@ -142,8 +142,8 @@ export default function Login() {
 
     return (
         <div className="min-h-screen w-full bg-background grid grid-cols-1 lg:grid-cols-12 overflow-x-hidden">
-            {/* Left Column: Form & Details (Slightly Wider) */}
-            <div className="lg:col-span-7 xl:col-span-7 flex flex-col justify-between min-h-screen p-6 sm:p-10 lg:p-12 xl:p-16">
+            {/* Left Column: Form & Details */}
+            <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-between min-h-screen p-4 sm:p-6 lg:p-8 xl:p-10">
                 {/* Header Logo */}
                 <div>
                     <Link href="/" className="inline-flex items-center gap-2.5 font-bold text-2xl tracking-tight text-slate-900 dark:text-white">
@@ -153,7 +153,7 @@ export default function Login() {
                 </div>
 
                 {/* Form Section */}
-                <div className="my-auto py-6 space-y-6 max-w-lg w-full mx-auto">
+                <div className="my-auto py-6 space-y-6 max-w-md w-full mx-auto">
                     <div className="space-y-2">
                         <h1 className="text-4xl sm:text-5xl font-semibold text-slate-900 dark:text-white tracking-tight leading-tight">
                             Welcome back,<br />
@@ -290,7 +290,7 @@ export default function Login() {
             </div>
 
             {/* Right Column: Whole Page Full-Height Orange Gradient Cover */}
-            <div className="lg:col-span-5 xl:col-span-5 min-h-screen bg-gradient-to-br from-[#FFA06D] via-[#FF8042] to-[#FF5E1E] p-6 lg:p-10 flex flex-col justify-between relative overflow-hidden shadow-2xl">
+            <div className="lg:col-span-6 xl:col-span-7 min-h-screen bg-gradient-to-br from-[#FFA06D] via-[#FF8042] to-[#FF5E1E] p-6 lg:p-12 flex flex-col justify-between relative overflow-hidden shadow-2xl">
                 {/* Top Translucent Card Snippet */}
                 <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl p-4 text-white max-w-sm w-full mx-auto shadow-lg space-y-3 transform -translate-y-1 opacity-90">
                     <p className="text-sm font-medium leading-snug">

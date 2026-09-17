@@ -25,10 +25,10 @@ export default function HealthGraph() {
         labels: ["W1", "W2", "W3", "W4"],
         datasets: [
             {
-                // Soft Light Orange Background Track Bar
+                // Background Track Bar
                 label: "Track",
                 data: [100, 100, 100, 100],
-                backgroundColor: "#FFF0E6",
+                backgroundColor: "#F1F5F9",
                 borderRadius: 16,
                 borderSkipped: false,
                 barThickness: 52,
@@ -50,8 +50,8 @@ export default function HealthGraph() {
                     gradient.addColorStop(1, "#FF4400");
 
                     const colors = [
-                        "#FFD4B8",
-                        "#FFAA73",
+                        "#FFE0CC",
+                        "#FFB380",
                         "#FF8033",
                         gradient,
                     ];
