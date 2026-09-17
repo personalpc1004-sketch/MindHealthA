@@ -10,7 +10,6 @@ import {
     Calendar,
     ArrowUpRight,
     PieChart,
-    Check,
 } from "lucide-react";
 
 import { supabase } from "@/lib/client";
@@ -100,19 +99,40 @@ export default function Login() {
         setError("");
         setLoading(true);
 
-        const { error } = await supabase.auth.signInWithPassword({
+        // 1. Try to sign in with password
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
 
-        if (error) {
-            setError(error.message);
+        if (!signInError && signInData?.session) {
+            router.push("/Dashboard");
+            router.refresh();
+            return;
+        }
+
+        // 2. If sign in failed, attempt automatic sign up for new users
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+        });
+
+        if (!signUpError && signUpData?.session) {
+            router.push("/Dashboard");
+            router.refresh();
+            return;
+        }
+
+        // 3. If sign up succeeded but requires email confirmation
+        if (!signUpError && signUpData?.user) {
+            setError("Account created! Check your email to verify, or try logging in.");
             setLoading(false);
             return;
         }
 
-        router.push("/Dashboard");
-        router.refresh();
+        // Show error message if credentials invalid or sign up failed
+        setError(signInError?.message || signUpError?.message || "Could not log in");
+        setLoading(false);
     };
 
     const handleGoogleLogin = async () => {
@@ -143,9 +163,9 @@ export default function Login() {
     return (
         <div className="min-h-screen w-full bg-background grid grid-cols-1 lg:grid-cols-12 overflow-x-hidden">
             {/* Left Column: Form & Details */}
-            <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-between min-h-screen p-4 sm:p-6 lg:p-8 xl:p-10">
+            <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-between min-h-screen p-6 sm:p-8 lg:p-10 xl:p-12 overflow-y-auto">
                 {/* Header Logo */}
-                <div>
+                <div className="pt-2">
                     <Link href="/" className="inline-flex items-center gap-2.5 font-bold text-2xl tracking-tight text-slate-900 dark:text-white">
                         <Brain className="h-7 w-7 text-[#FF6600]" />
                         <span>MindHealthAI</span>
@@ -153,20 +173,20 @@ export default function Login() {
                 </div>
 
                 {/* Form Section */}
-                <div className="my-auto py-6 space-y-6 max-w-md w-full mx-auto">
-                    <div className="space-y-2">
-                        <h1 className="text-4xl sm:text-5xl font-semibold text-slate-900 dark:text-white tracking-tight leading-tight">
+                <div className="py-6 sm:py-8 space-y-6 max-w-md w-full mx-auto my-auto">
+                    <div className="space-y-1.5">
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-slate-900 dark:text-white tracking-tight leading-tight">
                             Welcome back,<br />
-
+                            <span className="font-extrabold text-slate-950 dark:text-white">Olivia!</span>
                         </h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 font-normal pt-1">
-                            We are glad to see you <br />
+                        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-normal pt-1 leading-relaxed">
+                            We are glad to see you again!<br />
                             Please, enter your details
                         </p>
                     </div>
 
                     {/* Social Buttons */}
-                    <div className="grid grid-cols-2 gap-3 pt-2">
+                    <div className="grid grid-cols-2 gap-3 pt-1">
                         <Button
                             type="button"
                             variant="outline"
@@ -191,7 +211,7 @@ export default function Login() {
                     </div>
 
                     {/* Divider */}
-                    <div className="relative flex items-center justify-center my-6">
+                    <div className="relative flex items-center justify-center my-4">
                         <div className="border-t border-slate-200 dark:border-slate-800 w-full"></div>
                         <span className="bg-background px-3 text-xs text-slate-400 uppercase absolute font-medium">
                             or
@@ -237,10 +257,11 @@ export default function Login() {
                             <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300 select-none">
                                 <div
                                     onClick={() => setRememberMe(!rememberMe)}
-                                    className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${rememberMe
-                                        ? "border-[#FF6600] bg-white"
-                                        : "border-slate-300 bg-transparent"
-                                        }`}
+                                    className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
+                                        rememberMe
+                                            ? "border-[#FF6600] bg-white"
+                                            : "border-slate-300 bg-transparent"
+                                    }`}
                                 >
                                     {rememberMe && (
                                         <div className="w-2 h-2 rounded-full bg-[#FF6600]" />
@@ -259,9 +280,9 @@ export default function Login() {
 
                         {/* Error Alert */}
                         {error && (
-                            <p className="text-xs text-rose-500 font-medium pt-1">
+                            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-medium">
                                 {error}
-                            </p>
+                            </div>
                         )}
 
                         {/* Submit Login Button */}
@@ -275,7 +296,7 @@ export default function Login() {
                     </form>
 
                     {/* Sign up Link */}
-                    <p className="text-center text-xs text-slate-500 dark:text-slate-400 pt-2">
+                    <p className="text-center text-xs text-slate-500 dark:text-slate-400 pt-1">
                         Don't have an account?{" "}
                         <Link
                             href="/signup"
@@ -286,7 +307,7 @@ export default function Login() {
                     </p>
                 </div>
 
-                <div className="h-2"></div>
+                <div className="h-4"></div>
             </div>
 
             {/* Right Column: Whole Page Full-Height Orange Gradient Cover */}
