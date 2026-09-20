@@ -176,11 +176,11 @@ export default function Login() {
                 <div className="py-6 sm:py-8 space-y-6 max-w-md w-full mx-auto my-auto">
                     <div className="space-y-1.5">
                         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-slate-900 dark:text-white tracking-tight leading-tight">
-                            Welcome back,<br />
-                            <span className="font-extrabold text-slate-950 dark:text-white">Olivia!</span>
+                            Welcome !<br />
+
                         </h1>
                         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-normal pt-1 leading-relaxed">
-                            We are glad to see you again!<br />
+                            We are glad to see you <br />
                             Please, enter your details
                         </p>
                     </div>
@@ -257,11 +257,10 @@ export default function Login() {
                             <label className="flex items-center gap-2.5 cursor-pointer text-xs font-medium text-slate-700 dark:text-slate-300 select-none">
                                 <div
                                     onClick={() => setRememberMe(!rememberMe)}
-                                    className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${
-                                        rememberMe
-                                            ? "border-[#FF6600] bg-white"
-                                            : "border-slate-300 bg-transparent"
-                                    }`}
+                                    className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors ${rememberMe
+                                        ? "border-[#FF6600] bg-white"
+                                        : "border-slate-300 bg-transparent"
+                                        }`}
                                 >
                                     {rememberMe && (
                                         <div className="w-2 h-2 rounded-full bg-[#FF6600]" />
@@ -322,7 +321,7 @@ export default function Login() {
                             SJ
                         </div>
                         <div>
-                            <h4 className="text-xs font-semibold leading-none">Sarah Johnson</h4>
+                            <h4 className="text-xs font-semibold leading-none">YASH ROY</h4>
                             <p className="text-[10px] text-white/80 mt-0.5">CEO at Health Solutions</p>
                         </div>
                     </div>
