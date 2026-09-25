@@ -26,8 +26,8 @@ export default function Sidebar() {
 
     const navLinks = [
         { href: "/Dashboard", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/Interview", label: "AI Video Interview", icon: Video, badge: "Voice+Cam" },
-        { href: "/Assessment", label: "AI Assessment", icon: Brain, badge: "AI" },
+        { href: "/Interview", label: "AI Consulting", icon: Video, },
+
         { href: "/Chatbot", label: "AI Medical Chat", icon: Bot },
         { href: "/Journal", label: "Journal", icon: BookOpen },
         { href: "/Exercises", label: "Exercises", icon: Activity },
