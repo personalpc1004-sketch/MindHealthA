@@ -584,10 +584,7 @@ export default function MedicalChatbotPage() {
                                 <div className="h-9 w-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
                                     <Key className="h-4 w-4" />
                                 </div>
-                                <div>
-                                    <h3 className="font-bold text-slate-900 text-sm">Groq API Configuration</h3>
-                                    <p className="text-[11px] text-slate-500">Provide your Groq API Key</p>
-                                </div>
+
                             </div>
                             <button
                                 onClick={() => setShowKeyModal(false)}
