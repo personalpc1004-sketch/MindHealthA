@@ -159,12 +159,21 @@ export default function Dashboard() {
                         </p>
                     </div>
 
-                    <div className="z-10 flex items-center">
+                    <div className="z-10 flex flex-wrap items-center gap-2.5">
+                        <Link href="/Assessment">
+                            <Button
+                                className="bg-white text-orange-600 hover:bg-orange-50 font-bold px-4 py-2 h-auto rounded-lg shadow-md transition-all flex items-center justify-center gap-2 text-xs"
+                            >
+                                <Brain className="h-3.5 w-3.5 text-orange-600" />
+                                <span>Take AI Assessment</span>
+                            </Button>
+                        </Link>
                         <Button
                             onClick={handleGenerateNewReport}
-                            className="bg-white text-orange-600 hover:bg-orange-50 font-bold px-4 py-2 h-auto rounded-lg shadow-md transition-all flex items-center justify-center gap-2 text-xs"
+                            variant="outline"
+                            className="bg-white/15 hover:bg-white/25 text-white border-white/30 font-bold px-4 py-2 h-auto rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 text-xs"
                         >
-                            <Download className="h-3.5 w-3.5 text-orange-600" />
+                            <Download className="h-3.5 w-3.5 text-white" />
                             <span>Download Report</span>
                         </Button>
                     </div>
