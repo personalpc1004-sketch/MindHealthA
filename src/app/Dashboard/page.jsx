@@ -17,11 +17,12 @@ import {
     ShieldCheck,
     FileText,
     ArrowUpRight,
+    Bot,
 } from "lucide-react";
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import HealthAnalyticsCharts from "@/components/HealthAnalyticsCharts";
-import DashboardChatbot from "@/components/DashboardChatbot";
 
 export default function Dashboard() {
     const router = useRouter();
@@ -330,9 +331,50 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    {/* Right Column (5 Cols): MindHealth AI Chatbot Widget */}
-                    <div className="lg:col-span-5">
-                        <DashboardChatbot />
+                    {/* Right Column (5 Cols): AI Medical Consultation Gateway */}
+                    <div className="lg:col-span-5 bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg shadow-orange-500/20 flex flex-col justify-between relative overflow-hidden h-full min-h-[420px]">
+                        <div className="absolute -right-8 -bottom-8 w-48 h-48 bg-white/10 rounded-full blur-xl pointer-events-none" />
+
+                        <div className="space-y-4 relative z-10">
+                            <div className="flex items-center justify-between">
+                                <div className="h-11 w-11 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30 shadow-xs">
+                                    <Bot className="h-6 w-6" />
+                                </div>
+                                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-white/20 border border-white/30 backdrop-blur-md flex items-center gap-1.5">
+                                    <Sparkles className="h-3 w-3 text-amber-200" />
+                                    Powered by Groq
+                                </span>
+                            </div>
+
+                            <div>
+                                <h3 className="text-lg font-bold">AI Medical Consultation</h3>
+                                <p className="text-xs text-orange-100 mt-1 leading-relaxed">
+                                    Chat with our dedicated clinical AI specialist for evidence-based answers on symptoms, medications, lab analysis, and mental wellness.
+                                </p>
+                            </div>
+
+                            <div className="space-y-2 pt-2">
+                                <div className="flex items-center gap-2 text-xs text-orange-50 bg-black/10 px-3 py-2 rounded-xl backdrop-blur-xs border border-white/10">
+                                    <ShieldCheck className="h-4 w-4 text-amber-300 shrink-0" />
+                                    <span>Strictly medical & healthcare certified topics only</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-orange-50 bg-black/10 px-3 py-2 rounded-xl backdrop-blur-xs border border-white/10">
+                                    <Activity className="h-4 w-4 text-amber-300 shrink-0" />
+                                    <span>Ultra-fast Groq LLaMA 3.3 70B inference</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-6 relative z-10">
+                            <Link
+                                href="/Chatbot"
+                                className="w-full inline-flex items-center justify-center gap-2 bg-white text-orange-600 hover:bg-orange-50 font-bold px-4 py-3 rounded-xl shadow-md text-xs transition-all hover:scale-[1.01]"
+                            >
+                                <Bot className="h-4 w-4 text-orange-600" />
+                                <span>Open Medical AI Chatbot</span>
+                                <ArrowUpRight className="h-4 w-4 text-orange-600" />
+                            </Link>
+                        </div>
                     </div>
                 </div>
 

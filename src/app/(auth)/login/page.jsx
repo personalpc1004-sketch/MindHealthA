@@ -83,7 +83,6 @@ export default function Login() {
     // Check URL hash for OAuth tokens
     useEffect(() => {
         if (typeof window !== "undefined" && window.location.hash.includes("access_token")) {
-            setLoading(true);
             supabase.auth.getSession().then(({ data: { session } }) => {
                 if (session) {
                     router.push("/Dashboard");
@@ -296,7 +295,7 @@ export default function Login() {
 
                     {/* Sign up Link */}
                     <p className="text-center text-xs text-slate-500 dark:text-slate-400 pt-1">
-                        Don't have an account?{" "}
+                        Don&apos;t have an account?{" "}
                         <Link
                             href="/signup"
                             className="font-semibold text-slate-950 dark:text-white hover:underline"

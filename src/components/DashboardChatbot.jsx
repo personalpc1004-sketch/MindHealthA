@@ -4,6 +4,16 @@ import React, { useState, useRef, useEffect } from "react";
 import { Bot, Send, Sparkles, RefreshCw, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+let dashMsgSeq = 1;
+function getDashMsgId(prefix = "dash") {
+    dashMsgSeq += 1;
+    return `${prefix}-${dashMsgSeq}`;
+}
+
+function getDashTimeStr() {
+    return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
 export default function DashboardChatbot() {
     const [messages, setMessages] = useState([
         {
@@ -36,12 +46,12 @@ export default function DashboardChatbot() {
         const query = textToSend || input;
         if (!query.trim()) return;
 
-        const msgId = `user-${Math.random().toString(36).substring(2, 9)}`;
+        const msgId = getDashMsgId("user");
         const userMsg = {
             id: msgId,
             sender: "user",
             text: query,
-            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            time: getDashTimeStr(),
         };
 
         setMessages((prev) => [...prev, userMsg]);
@@ -63,12 +73,12 @@ export default function DashboardChatbot() {
                 replyText = "We recommend 15 minutes of guided morning meditation and a 5-minute evening reflection journal. Track your active minutes in the daily activity graph!";
             }
 
-            const botMsgId = `bot-${Math.random().toString(36).substring(2, 9)}`;
+            const botMsgId = getDashMsgId("bot");
             const botMsg = {
                 id: botMsgId,
                 sender: "bot",
                 text: replyText,
-                time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                time: getDashTimeStr(),
             };
 
             setMessages((prev) => [...prev, botMsg]);
@@ -77,7 +87,7 @@ export default function DashboardChatbot() {
     };
 
     const handleReset = () => {
-        const resetMsgId = `bot-reset-${Math.random().toString(36).substring(2, 9)}`;
+        const resetMsgId = getDashMsgId("bot-reset");
         setMessages([
             {
                 id: resetMsgId,
