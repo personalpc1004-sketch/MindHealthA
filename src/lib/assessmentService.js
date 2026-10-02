@@ -1,7 +1,13 @@
 import { supabase } from "@/lib/client";
 
-const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+export const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL || "https://mentalhealthaimodel.onrender.com";
+
+export const PREDICTION_URL =
+    process.env.NEXT_PUBLIC_PREDICTION_URL || `${API_BASE_URL}/predict`;
+
+export const MODEL_TEST_URL =
+    process.env.NEXT_PUBLIC_MODEL_TEST_URL || "https://mentalhealthaimodel.onrender.com/test";
 
 /**
  * Validates that all 9 questions and 9 response times required
@@ -23,16 +29,12 @@ export function validateAssessmentPayload(data) {
 /**
  * Executes the complete end-to-end Assessment flow:
  * 1. Insert record into Supabase with status = 'processing'
- * 2. Send request to Python Flask XGBoost API (POST /predict)
+ * 2. Send request to deployed XGBoost API (POST https://mentalhealthaimodel.onrender.com/predict)
  * 3. Receive actual prediction
  * 4. Update Supabase record with prediction and status = 'completed' (or 'failed')
  * 5. Return prediction to frontend
  */
 export async function runAssessmentFlow({ userId, payload }) {
-    if (!userId) {
-        throw new Error("User must be authenticated to perform assessment");
-    }
-
     // Validate inputs match XGBoost model requirements
     validateAssessmentPayload(payload);
 
@@ -40,39 +42,54 @@ export async function runAssessmentFlow({ userId, payload }) {
 
     // STEP 1: Insert record into Supabase with status = 'processing'
     try {
+        const insertPayload = {
+            input_data: payload,
+            status: "processing",
+            error_message: null,
+        };
+        if (userId) {
+            insertPayload.user_id = userId;
+        }
+
         const { data: record, error: insertError } = await supabase
             .from("mental_health_assessments")
-            .insert({
-                user_id: userId,
-                input_data: payload,
-                status: "processing",
-                error_message: null,
-            })
+            .insert(insertPayload)
             .select()
             .single();
 
         if (insertError) {
-            console.error("Supabase insert error:", insertError);
-            if (insertError.code === "PGRST205" || insertError.message?.includes("schema cache")) {
-                throw new Error(
-                    "The Supabase table 'mental_health_assessments' does not exist yet. Please execute 'supabase_schema.sql' in your Supabase SQL Editor."
-                );
+            console.warn("Supabase browser insert notice:", insertError.message);
+            // Fallback to server API bridge /api/assessment-submit
+            try {
+                const apiRes = await fetch("/api/assessment-submit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        userId: userId || null,
+                        payload,
+                        status: "processing",
+                    }),
+                });
+                if (apiRes.ok) {
+                    const apiData = await apiRes.json();
+                    supabaseRecordId = apiData.id;
+                }
+            } catch (bridgeErr) {
+                console.warn("API bridge insert notice:", bridgeErr);
             }
-            throw new Error(`Supabase insert failed: ${insertError.message}`);
+        } else {
+            supabaseRecordId = record?.id;
         }
-
-        supabaseRecordId = record?.id;
     } catch (err) {
-        console.error("Initial Supabase stage error:", err);
-        throw err;
+        console.warn("Initial Supabase stage notice:", err);
     }
 
-    // STEP 2 & 3: Call Python Flask API with exact XGBoost inputs
+    // STEP 2 & 3: Call Render deployed XGBoost model API (/predict)
     let predictionResult = null;
     let rawApiResponse = null;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/predict`, {
+        const response = await fetch(PREDICTION_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -84,7 +101,7 @@ export async function runAssessmentFlow({ userId, payload }) {
 
         if (!response.ok || resData.status === "error" || resData.success === false) {
             const errorMsg =
-                resData.message || resData.error || `Python API error (status ${response.status})`;
+                resData.message || resData.error || `Prediction API error (status ${response.status})`;
             throw new Error(errorMsg);
         }
 
@@ -95,7 +112,7 @@ export async function runAssessmentFlow({ userId, payload }) {
             "Completed";
 
     } catch (apiError) {
-        console.error("Python Flask API call failed:", apiError);
+        console.error("XGBoost Prediction API call failed:", apiError);
 
         // Update Supabase status = 'failed'
         if (supabaseRecordId) {
@@ -108,31 +125,60 @@ export async function runAssessmentFlow({ userId, payload }) {
                     })
                     .eq("id", supabaseRecordId);
             } catch (updateErr) {
-                console.error("Failed to update status to failed in Supabase:", updateErr);
+                console.warn("Failed to update status to failed in Supabase:", updateErr);
             }
         }
 
         throw new Error(
-            `AI Model Error: ${apiError.message}. Ensure Python Flask server is running at ${API_BASE_URL}`
+            `AI Model Error: ${apiError.message}. Ensure prediction endpoint is reachable at ${PREDICTION_URL}`
         );
     }
 
     // STEP 5: Update Supabase record with prediction and status = 'completed'
-    try {
-        const { error: updateError } = await supabase
-            .from("mental_health_assessments")
-            .update({
-                prediction: predictionResult,
-                status: "completed",
-                error_message: null,
-            })
-            .eq("id", supabaseRecordId);
+    if (supabaseRecordId) {
+        try {
+            const { error: updateError } = await supabase
+                .from("mental_health_assessments")
+                .update({
+                    prediction: predictionResult,
+                    status: "completed",
+                    error_message: null,
+                })
+                .eq("id", supabaseRecordId);
 
-        if (updateError) {
-            console.error("Supabase update error:", updateError);
+            if (updateError) {
+                // Try via server bridge
+                await fetch("/api/assessment-submit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        assessmentId: supabaseRecordId,
+                        prediction: predictionResult,
+                        status: "completed",
+                    }),
+                });
+            }
+        } catch (updateErr) {
+            console.warn("Supabase completion update exception:", updateErr);
         }
-    } catch (updateErr) {
-        console.error("Supabase completion update exception:", updateErr);
+    } else {
+        // If initial insert was delayed, store complete record now via bridge
+        try {
+            const finalRes = await fetch("/api/assessment-submit", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: userId || null,
+                    payload,
+                    prediction: predictionResult,
+                    status: "completed",
+                }),
+            });
+            if (finalRes.ok) {
+                const finalData = await finalRes.json();
+                supabaseRecordId = finalData.id;
+            }
+        } catch {}
     }
 
     // STEP 6: Return prediction and details to frontend

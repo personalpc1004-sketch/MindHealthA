@@ -30,29 +30,58 @@ ChartJS.register(
     Filler
 );
 
-export default function HealthAnalyticsCharts() {
+export default function HealthAnalyticsCharts({ assessmentHistory = [], latestAssessment = null }) {
     const [timeframe, setTimeframe] = useState("30d");
+
+    // Dynamic extraction from user's actual evaluations if available
+    const hasAssessments = assessmentHistory && assessmentHistory.length > 0;
+
+    // Build trajectory from user history or baseline
+    const dynamicScores = hasAssessments
+        ? [...assessmentHistory]
+            .reverse()
+            .map((asmt) => {
+                const inp = asmt.input_data || {};
+                let sum = 0;
+                for (let i = 1; i <= 9; i++) {
+                    if (typeof inp[`question${i}`] === "number") sum += inp[`question${i}`];
+                }
+                return Math.max(25, Math.round(100 - (sum / 27) * 75));
+            })
+        : [72, 75, 74, 80, 83, 85, 87, 89, 90, 92, 94];
+
+    const dynamicLabels = hasAssessments
+        ? [...assessmentHistory]
+            .reverse()
+            .map((asmt, idx) => {
+                if (asmt.created_at) {
+                    const d = new Date(asmt.created_at);
+                    return `${d.getMonth() + 1}/${d.getDate()}`;
+                }
+                return `Eval ${idx + 1}`;
+            })
+        : [
+            "Sep 1", "Sep 3", "Sep 6", "Sep 9", "Sep 12", "Sep 15",
+            "Sep 18", "Sep 21", "Sep 24", "Sep 27", "Sep 30"
+        ];
 
     // User Health Index trajectory data by timeframe
     const healthTrendMap = {
         "7d": {
-            labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-            scores: [78, 82, 80, 86, 89, 91, 94],
+            labels: dynamicLabels.slice(-7),
+            scores: dynamicScores.slice(-7),
         },
         "30d": {
-            labels: [
-                "Sep 1", "Sep 3", "Sep 6", "Sep 9", "Sep 12", "Sep 15",
-                "Sep 18", "Sep 21", "Sep 24", "Sep 27", "Sep 30"
-            ],
-            scores: [72, 75, 74, 80, 83, 85, 87, 89, 90, 92, 94],
+            labels: dynamicLabels.slice(-12),
+            scores: dynamicScores.slice(-12),
         },
         "12m": {
-            labels: ["Oct", "Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"],
-            scores: [65, 68, 70, 74, 78, 81, 84, 86, 88, 90, 92, 94],
+            labels: dynamicLabels,
+            scores: dynamicScores,
         },
     };
 
-    const currentTrend = healthTrendMap[timeframe];
+    const currentTrend = healthTrendMap[timeframe] || healthTrendMap["30d"];
 
     // 1. User Health Score Trajectory Line Chart
     const lineChartData = {
@@ -117,12 +146,20 @@ export default function HealthAnalyticsCharts() {
         },
     };
 
-    // 2. Health Pillar Breakdown Donut Graph
+    // 2. Health Pillar Breakdown Donut Graph (Computed from latest evaluation)
+    const latestInput = latestAssessment?.input_data || (hasAssessments ? assessmentHistory[0]?.input_data : null) || {};
+    
+    // Calculate pillar strengths (normalized to 100)
+    const emotionalScore = Math.max(15, Math.round(100 - ((Number(latestInput.question1 || 0) + Number(latestInput.question2 || 0)) / 6) * 75));
+    const sleepEnergyScore = Math.max(15, Math.round(100 - ((Number(latestInput.question3 || 0) + Number(latestInput.question4 || 0)) / 6) * 75));
+    const cognitiveScore = Math.max(15, Math.round(100 - ((Number(latestInput.question7 || 0) + Number(latestInput.question8 || 0)) / 6) * 75));
+    const balanceScore = Math.max(15, Math.round(100 - ((Number(latestInput.question5 || 0) + Number(latestInput.question6 || 0) + Number(latestInput.question9 || 0)) / 9) * 75));
+
     const doughnutData = {
-        labels: ["Emotional Balance", "Stress Control", "Sleep & Energy", "Mindfulness Focus"],
+        labels: ["Emotional Balance", "Sleep & Vitality", "Cognitive Focus", "Stress Control"],
         datasets: [
             {
-                data: [38, 26, 20, 16],
+                data: hasAssessments ? [emotionalScore, sleepEnergyScore, cognitiveScore, balanceScore] : [38, 26, 20, 16],
                 backgroundColor: [
                     "#EA580C", // Vibrant Orange
                     "#F97316", // Bright Orange

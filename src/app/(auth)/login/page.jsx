@@ -320,7 +320,7 @@ export default function Login() {
                             SJ
                         </div>
                         <div>
-                            <h4 className="text-xs font-semibold leading-none">YASH ROY</h4>
+                            <h4 className="text-xs font-semibold leading-none">YASH PAISADELI</h4>
                             <p className="text-[10px] text-white/80 mt-0.5">CEO at Health Solutions</p>
                         </div>
                     </div>

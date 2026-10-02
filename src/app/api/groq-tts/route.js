@@ -15,8 +15,12 @@ export async function POST(req) {
         }
 
         // Groq Orpheus TTS model max input is 200 characters.
-        // Trim and ensure safe length
-        const safeText = text.trim().slice(0, 195);
+        // Clean markdown, remove line breaks and ensure safe length
+        const safeText = text
+            .replace(/[\r\n]+/g, " ")
+            .replace(/[*_#`[\]()]/g, "")
+            .trim()
+            .slice(0, 190);
 
         const groqRes = await fetch("https://api.groq.com/openai/v1/audio/speech", {
             method: "POST",
@@ -34,13 +38,16 @@ export async function POST(req) {
 
         if (!groqRes.ok) {
             const errText = await groqRes.text();
-            console.error("Groq TTS API returned error:", groqRes.status, errText);
+            console.warn("Groq TTS API notice:", groqRes.status, errText);
             return NextResponse.json(
                 {
-                    error: `Groq TTS error (${groqRes.status}): ${errText}`,
+                    ok: false,
+                    error: `Groq TTS status ${groqRes.status}: ${errText}`,
                     fallbackRequired: true,
+                    termsRequired: errText.includes("terms") || errText.includes("model_terms_required"),
+                    termsUrl: "https://console.groq.com/playground?model=canopylabs%2Forpheus-v1-english"
                 },
-                { status: groqRes.status }
+                { status: 200 }
             );
         }
 

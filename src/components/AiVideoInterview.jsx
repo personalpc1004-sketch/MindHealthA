@@ -117,6 +117,7 @@ export default function AiVideoInterview({
     onAnalyze,
     isAnalyzing,
     onRestart,
+    userId,
 }) {
     // ─── Session State ────────────────────────────────────────────────────────
     const [sessionStarted, setSessionStarted] = useState(false);
@@ -140,14 +141,26 @@ export default function AiVideoInterview({
     const [isTranscribing, setIsTranscribing] = useState(false);
     const mediaRecorderRef = useRef(null);
     const audioChunksRef = useRef([]);
+    const groqAudioRef = useRef(null);
 
     const currentQuestion = questions[currentStep];
-    const details = QUESTION_CLINICAL_DETAILS[currentQuestion?.key] || {
-        clinicalTerm: "Clinical Health Metric",
-        explanation: "Evaluating mental well-being and health patterns over the past two weeks.",
-        doctorTip: "Choose the answer that closest reflects your experience.",
-        listenText: `Question ${currentQuestion?.id} of 9: ${currentQuestion?.text}`,
-    };
+    const details = useMemo(() => {
+        if (!currentQuestion) {
+            return {
+                clinicalTerm: "Clinical Health Metric",
+                explanation: "Evaluating mental well-being and health patterns over the past two weeks.",
+                doctorTip: "Choose the answer that closest reflects your experience.",
+                listenText: "Please answer the assessment question.",
+            };
+        }
+        const builtIn = QUESTION_CLINICAL_DETAILS[currentQuestion.key] || {};
+        return {
+            clinicalTerm: currentQuestion.clinical_term || builtIn.clinicalTerm || "Clinical Health Metric",
+            explanation: currentQuestion.doctor_explanation || builtIn.explanation || "Evaluating mental well-being and health patterns over the past two weeks.",
+            doctorTip: currentQuestion.doctor_tip || builtIn.doctorTip || "Choose the answer that closest reflects your experience.",
+            listenText: currentQuestion.listen_text || builtIn.listenText || `Question ${currentQuestion.id || currentStep + 1} of 9: ${currentQuestion.text}`,
+        };
+    }, [currentQuestion, currentStep]);
 
     // ─── PHQ-9 Live Score Calculation ─────────────────────────────────────────
     const scoreData = useMemo(() => {
@@ -195,83 +208,201 @@ export default function AiVideoInterview({
         };
     }, [answers]);
 
-    // ─── SYNCHRONOUS, ROCK-SOLID SPEECH ENGINE ────────────────────────────────
-    // Ensures audio plays aloud in 100% of browsers by executing synchronously
-    // within active user gesture contexts and eliminating long async waits.
-    const speakClinicalQuestion = useCallback((q) => {
-        if (!q || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const activeUtteranceRef = useRef(null);
+
+    // Pre-load and cache voices asynchronously for Chrome/Chromium & Safari
+    useEffect(() => {
+        if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+        const loadVoices = () => {
+            try {
+                window.speechSynthesis.getVoices();
+            } catch { }
+        };
+        loadVoices();
+        if (window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+        }
+    }, []);
+
+    // Stop speech safely (both Groq audio and browser speech synthesis)
+    const stopSpeech = useCallback(() => {
+        if (groqAudioRef.current) {
+            try {
+                groqAudioRef.current.pause();
+                groqAudioRef.current.currentTime = 0;
+            } catch { }
+            groqAudioRef.current = null;
+        }
+        if (typeof window !== "undefined" && window.speechSynthesis) {
+            try {
+                window.speechSynthesis.cancel();
+            } catch { }
+        }
+        if (keepAliveTimerRef.current) {
+            clearInterval(keepAliveTimerRef.current);
+            keepAliveTimerRef.current = null;
+        }
+        activeUtteranceRef.current = null;
+        if (typeof window !== "undefined") {
+            window._aiActiveUtterance = null;
+        }
+        setIsAiSpeaking(false);
+    }, []);
+
+    // Bulletproof Chrome, Safari, Edge Speech Synthesis (solves Chrome V8 garbage collection & silent audio)
+    const speakWithFallbackSynthesis = useCallback((textToSpeak) => {
+        if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+            setIsAiSpeaking(false);
+            return;
+        }
 
         try {
-            // Cancel any previous utterance & un-pause
             window.speechSynthesis.cancel();
             window.speechSynthesis.resume();
 
-            const textToSpeak = details.listenText;
             const utterance = new SpeechSynthesisUtterance(textToSpeak);
-            utterance.rate = 0.93; // Warm, steady, empathetic clinical pace
-            utterance.pitch = 1.05;
+            utterance.lang = "en-US";
+            utterance.rate = 0.95;
+            utterance.pitch = 1.02;
             utterance.volume = 1.0;
 
-            // Pick highest quality English voice
-            const voices = window.speechSynthesis.getVoices();
-            const preferred =
-                voices.find(
-                    (v) =>
-                        v.lang.startsWith("en") &&
-                        (v.name.includes("Samantha") ||
-                            v.name.includes("Google") ||
-                            v.name.includes("Natural") ||
-                            v.name.includes("Victoria") ||
-                            v.name.includes("Karen") ||
-                            v.name.includes("Zira"))
-                ) ||
-                voices.find((v) => v.lang.startsWith("en")) ||
-                voices[0];
+            // CRITICAL FOR CHROME: Store reference in component ref and window global
+            // Otherwise Chrome's V8 engine garbage-collects the utterance and stays silent!
+            activeUtteranceRef.current = utterance;
+            if (typeof window !== "undefined") {
+                window._aiActiveUtterance = utterance;
+            }
 
-            if (preferred) utterance.voice = preferred;
+            const voices = window.speechSynthesis.getVoices() || [];
+            if (voices.length > 0) {
+                const preferred =
+                    voices.find(
+                        (v) =>
+                            v.lang &&
+                            v.lang.startsWith("en") &&
+                            (v.name.includes("Google") ||
+                                v.name.includes("Samantha") ||
+                                v.name.includes("Natural") ||
+                                v.name.includes("Victoria") ||
+                                v.name.includes("Karen") ||
+                                v.name.includes("Zira") ||
+                                v.name.includes("David"))
+                    ) ||
+                    voices.find((v) => v.lang && v.lang.startsWith("en")) ||
+                    voices[0];
+
+                if (preferred) utterance.voice = preferred;
+            }
 
             utterance.onstart = () => {
                 setIsAiSpeaking(true);
             };
+
             utterance.onend = () => {
                 setIsAiSpeaking(false);
-            };
-            utterance.onerror = (e) => {
-                console.warn("Speech synthesis error event:", e);
-                setIsAiSpeaking(false);
+                activeUtteranceRef.current = null;
+                if (typeof window !== "undefined") window._aiActiveUtterance = null;
+                if (keepAliveTimerRef.current) {
+                    clearInterval(keepAliveTimerRef.current);
+                    keepAliveTimerRef.current = null;
+                }
             };
 
-            // Prevent Chrome speech synthesis auto-pause bug on utterances > 15s
+            utterance.onerror = (e) => {
+                console.warn("Speech synthesis notice:", e);
+                setIsAiSpeaking(false);
+                activeUtteranceRef.current = null;
+                if (typeof window !== "undefined") window._aiActiveUtterance = null;
+                if (keepAliveTimerRef.current) {
+                    clearInterval(keepAliveTimerRef.current);
+                    keepAliveTimerRef.current = null;
+                }
+            };
+
+            // Prevent Chrome auto-pause after 15 seconds
             if (keepAliveTimerRef.current) clearInterval(keepAliveTimerRef.current);
             keepAliveTimerRef.current = setInterval(() => {
-                if (window.speechSynthesis.speaking) {
-                    window.speechSynthesis.resume();
-                } else {
-                    clearInterval(keepAliveTimerRef.current);
+                if (typeof window !== "undefined" && window.speechSynthesis) {
+                    if (window.speechSynthesis.speaking) {
+                        window.speechSynthesis.resume();
+                    } else {
+                        clearInterval(keepAliveTimerRef.current);
+                        keepAliveTimerRef.current = null;
+                    }
                 }
-            }, 3000);
+            }, 2000);
 
-            // Trigger speech
-            setTimeout(() => {
-                window.speechSynthesis.resume();
-                window.speechSynthesis.speak(utterance);
-            }, 30);
+            // Execute speak immediately
+            window.speechSynthesis.resume();
+            window.speechSynthesis.speak(utterance);
         } catch (err) {
-            console.error("Speech playback error:", err);
+            console.error("Speech synthesis execution error:", err);
             setIsAiSpeaking(false);
         }
-    }, [details]);
-
-    // Stop speech safely
-    const stopSpeech = useCallback(() => {
-        if (typeof window !== "undefined" && window.speechSynthesis) {
-            try {
-                window.speechSynthesis.cancel();
-            } catch {}
-        }
-        if (keepAliveTimerRef.current) clearInterval(keepAliveTimerRef.current);
-        setIsAiSpeaking(false);
     }, []);
+
+    // ─── GROQ AI TEXT-TO-SPEECH (TTS) ENGINE WITH CHROME/SAFARI COMPLIANCE ───
+    const speakClinicalQuestion = useCallback(
+        async (q) => {
+            if (!q) return;
+            stopSpeech();
+
+            const textToSpeak = details.listenText || `Question ${q.id || currentStep + 1} of 9: ${q.text}`;
+            setIsAiSpeaking(true);
+
+            try {
+                const res = await fetch("/api/groq-tts", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        text: textToSpeak,
+                        voice: "hannah",
+                    }),
+                });
+
+                const contentType = res.headers.get("content-type") || "";
+
+                // If Groq returned actual binary audio, play via Audio element
+                if (res.ok && contentType.includes("audio")) {
+                    const audioBlob = await res.blob();
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const audio = new Audio(audioUrl);
+                    groqAudioRef.current = audio;
+
+                    audio.onplay = () => {
+                        setIsAiSpeaking(true);
+                    };
+
+                    audio.onended = () => {
+                        setIsAiSpeaking(false);
+                        URL.revokeObjectURL(audioUrl);
+                        groqAudioRef.current = null;
+                    };
+
+                    audio.onerror = (e) => {
+                        console.warn("Groq Audio playback error, switching to clinical speech:", e);
+                        speakWithFallbackSynthesis(textToSpeak);
+                    };
+
+                    try {
+                        await audio.play();
+                        return;
+                    } catch (playErr) {
+                        console.warn("Audio autoplay blocked by browser policy, using speech synthesis:", playErr);
+                        speakWithFallbackSynthesis(textToSpeak);
+                        return;
+                    }
+                }
+
+                // If Groq returned JSON (terms required or rate limit), use speech synthesis immediately
+                speakWithFallbackSynthesis(textToSpeak);
+            } catch (err) {
+                console.warn("Groq TTS fetch notice, using clinical speech synthesis:", err);
+                speakWithFallbackSynthesis(textToSpeak);
+            }
+        },
+        [details.listenText, currentStep, stopSpeech, speakWithFallbackSynthesis]
+    );
 
     // ─── Persist Question & Answer into Supabase Database ─────────────────────
     const saveToDatabase = useCallback(
@@ -282,6 +413,7 @@ export default function AiVideoInterview({
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
+                        userId: userId || null,
                         question: {
                             id: questionObj.id,
                             key: questionObj.key,
@@ -302,7 +434,7 @@ export default function AiVideoInterview({
                 setDbSyncStatus("synced");
             }
         },
-        []
+        [userId]
     );
 
     // ─── Initialize Camera / User Video Stream ────────────────────────────────
@@ -352,20 +484,31 @@ export default function AiVideoInterview({
         }
     }, [sessionStarted]);
 
+    const speakFnRef = useRef(speakClinicalQuestion);
+    useEffect(() => {
+        speakFnRef.current = speakClinicalQuestion;
+    });
+
+    const lastSpokenStepRef = useRef(-1);
+
     // Automatically speak when currentStep changes after session started
     useEffect(() => {
         if (!sessionStarted || !currentQuestion) return;
 
-        // Auto-speak current question with a slight pause for natural transition
-        const timer = setTimeout(() => {
-            speakClinicalQuestion(currentQuestion);
-        }, 300);
+        // Auto-speak when entering a new question step or on session start
+        if (lastSpokenStepRef.current !== currentStep) {
+            lastSpokenStepRef.current = currentStep;
+            const timer = setTimeout(() => {
+                if (speakFnRef.current) {
+                    speakFnRef.current(currentQuestion);
+                }
+            }, 350);
 
-        return () => {
-            clearTimeout(timer);
-            stopSpeech();
-        };
-    }, [currentStep, sessionStarted, currentQuestion, speakClinicalQuestion, stopSpeech]);
+            return () => {
+                clearTimeout(timer);
+            };
+        }
+    }, [currentStep, sessionStarted, currentQuestion]);
 
     // ─── Handle Answer Selection (Voice or Click) ─────────────────────────────
     const handleAnswerSelection = useCallback(
@@ -514,7 +657,7 @@ export default function AiVideoInterview({
         return () => {
             if (interval) clearInterval(interval);
             if (recorder && recorder.state !== "inactive") {
-                try { recorder.stop(); } catch {}
+                try { recorder.stop(); } catch { }
             }
             setIsListening(false);
         };
@@ -547,7 +690,7 @@ export default function AiVideoInterview({
             >
                 {/* Background video loop & overlay */}
                 <video
-                    src="/ai-interview-doctor.webm"
+                    src="/femaledoctor.mp4"
                     poster="/ai-interviewer.jpg"
                     autoPlay
                     loop
@@ -626,10 +769,8 @@ export default function AiVideoInterview({
                             if (typeof window !== "undefined" && window.speechSynthesis) {
                                 window.speechSynthesis.cancel();
                                 window.speechSynthesis.resume();
-                                const unlock = new SpeechSynthesisUtterance("Welcome to your MindHealth assessment.");
-                                unlock.volume = 0.5;
-                                window.speechSynthesis.speak(unlock);
                             }
+                            lastSpokenStepRef.current = -1;
                             setSessionStarted(true);
                         }}
                         className="group flex items-center gap-3 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-base px-10 py-4 rounded-2xl shadow-xl shadow-orange-500/30 transition-all duration-200 hover:scale-105 active:scale-95"
@@ -725,15 +866,14 @@ export default function AiVideoInterview({
                 {/* AI Doctor Video Feed */}
                 <video
                     ref={aiVideoRef}
-                    src="/ai-interview-doctor.webm"
+                    src="/femaledoctor.mp4"
                     poster="/ai-interviewer.jpg"
                     autoPlay
                     loop
                     playsInline
                     muted
-                    className={`w-full h-full object-cover transition-all duration-700 ${
-                        isAiSpeaking ? "scale-[1.02] brightness-105" : "scale-100 brightness-95"
-                    }`}
+                    className={`w-full h-full object-cover transition-all duration-700 ${isAiSpeaking ? "scale-[1.02] brightness-105" : "scale-100 brightness-95"
+                        }`}
                 />
 
                 {/* Subtle dark gradient overlay */}
@@ -804,9 +944,8 @@ export default function AiVideoInterview({
                         autoPlay
                         playsInline
                         muted
-                        className={`w-full h-full object-cover -scale-x-100 ${
-                            cameraActive && !cameraError ? "block" : "hidden"
-                        }`}
+                        className={`w-full h-full object-cover -scale-x-100 ${cameraActive && !cameraError ? "block" : "hidden"
+                            }`}
                     />
 
                     {/* Camera error/muted fallback */}
@@ -837,9 +976,8 @@ export default function AiVideoInterview({
                         <button
                             type="button"
                             onClick={toggleCamera}
-                            className={`p-1 rounded-md text-white transition-colors ${
-                                cameraActive ? "bg-slate-800/80 hover:bg-slate-700" : "bg-rose-600/90"
-                            }`}
+                            className={`p-1 rounded-md text-white transition-colors ${cameraActive ? "bg-slate-800/80 hover:bg-slate-700" : "bg-rose-600/90"
+                                }`}
                             title={cameraActive ? "Turn off camera" : "Turn on camera"}
                         >
                             {cameraActive ? <VideoIcon className="h-2.5 w-2.5" /> : <VideoOff className="h-2.5 w-2.5" />}
@@ -847,9 +985,8 @@ export default function AiVideoInterview({
                         <button
                             type="button"
                             onClick={toggleMic}
-                            className={`p-1 rounded-md text-white transition-colors ${
-                                micActive ? "bg-slate-800/80 hover:bg-slate-700" : "bg-rose-600/90"
-                            }`}
+                            className={`p-1 rounded-md text-white transition-colors ${micActive ? "bg-slate-800/80 hover:bg-slate-700" : "bg-rose-600/90"
+                                }`}
                             title={micActive ? "Mute microphone" : "Unmute microphone"}
                         >
                             {micActive ? <Mic className="h-2.5 w-2.5" /> : <MicOff className="h-2.5 w-2.5" />}
@@ -874,9 +1011,21 @@ export default function AiVideoInterview({
                             </h3>
                         </div>
                     </div>
-                    <span className="text-[11px] text-slate-500 bg-white/80 border border-orange-100 px-2.5 py-1 rounded-full font-medium">
-                        PHQ-9 Clinical Metric {currentStep + 1} of 9
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => speakClinicalQuestion(currentQuestion)}
+                            className="text-xs border-orange-200 text-orange-700 bg-white hover:bg-orange-100/60 flex items-center gap-1.5 shadow-sm"
+                        >
+                            <Volume2 className="h-3.5 w-3.5 text-orange-600" />
+                            <span>{isAiSpeaking ? "Speaking (Groq TTS)..." : "Speak Question (Groq TTS)"}</span>
+                        </Button>
+                        <span className="text-[11px] text-slate-500 bg-white/80 border border-orange-100 px-2.5 py-1 rounded-full font-medium">
+                            PHQ-9 Clinical Metric {currentStep + 1} of {questions.length}
+                        </span>
+                    </div>
                 </div>
 
                 <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
@@ -1014,11 +1163,10 @@ export default function AiVideoInterview({
                                 key={opt.value}
                                 type="button"
                                 onClick={() => handleAnswerSelection(opt.value)}
-                                className={`p-4 rounded-2xl border text-left transition-all duration-200 flex items-center justify-between group ${
-                                    isSelected
-                                        ? "border-orange-500 bg-orange-50/70 shadow-sm ring-2 ring-orange-500/20"
-                                        : "border-slate-200 hover:border-orange-200 hover:bg-orange-50/30"
-                                }`}
+                                className={`p-4 rounded-2xl border text-left transition-all duration-200 flex items-center justify-between group ${isSelected
+                                    ? "border-orange-500 bg-orange-50/70 shadow-sm ring-2 ring-orange-500/20"
+                                    : "border-slate-200 hover:border-orange-200 hover:bg-orange-50/30"
+                                    }`}
                             >
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
@@ -1035,11 +1183,10 @@ export default function AiVideoInterview({
                                     <p className="text-[11px] text-slate-400 pl-7">{opt.description}</p>
                                 </div>
                                 <div
-                                    className={`h-6 w-6 rounded-full border flex items-center justify-center transition-colors ${
-                                        isSelected
-                                            ? "border-orange-600 bg-orange-600 text-white"
-                                            : "border-slate-300 group-hover:border-orange-300"
-                                    }`}
+                                    className={`h-6 w-6 rounded-full border flex items-center justify-center transition-colors ${isSelected
+                                        ? "border-orange-600 bg-orange-600 text-white"
+                                        : "border-slate-300 group-hover:border-orange-300"
+                                        }`}
                                 >
                                     {isSelected && <CheckCircle2 className="h-4 w-4" />}
                                 </div>
