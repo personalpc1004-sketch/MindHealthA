@@ -237,3 +237,143 @@ ON CONFLICT (question_id) DO UPDATE SET
 -- -------------------------------------------------------------
 GRANT ALL ON TABLE public.mental_health_assessments TO anon, authenticated, service_role;
 GRANT ALL ON TABLE public.assessment_questions TO anon, authenticated, service_role;
+
+-- -------------------------------------------------------------
+-- STEP 5: Create Table: user_profiles
+-- -------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.user_profiles (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid UNIQUE,
+  first_name text,
+  last_name text,
+  age integer,
+  photo_url text,
+  consultation_type text,
+  problem_description text,
+  phone text,
+  emergency_contact text,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT user_profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT user_profiles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS user_profiles_user_id_idx ON public.user_profiles(user_id);
+
+ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can select user profiles" ON public.user_profiles;
+DROP POLICY IF EXISTS "Anyone can insert or update user profiles" ON public.user_profiles;
+
+CREATE POLICY "Anyone can select user profiles"
+ON public.user_profiles
+FOR SELECT
+TO anon, authenticated
+USING (true);
+
+CREATE POLICY "Anyone can insert or update user profiles"
+ON public.user_profiles
+FOR ALL
+TO anon, authenticated
+USING (true)
+WITH CHECK (true);
+
+GRANT ALL ON TABLE public.user_profiles TO anon, authenticated, service_role;
+
+-- -------------------------------------------------------------
+-- STEP 6: Create Table: doctor_reviews
+-- -------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.doctor_reviews (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid,
+  user_name text NOT NULL DEFAULT 'Verified Patient',
+  doctor_id text NOT NULL,
+  doctor_name text NOT NULL,
+  doctor_specialty text,
+  rating integer NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  title text NOT NULL,
+  review_text text NOT NULL,
+  consultation_type text,
+  tags jsonb DEFAULT '[]'::jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT doctor_reviews_pkey PRIMARY KEY (id)
+);
+
+CREATE INDEX IF NOT EXISTS doctor_reviews_doctor_id_idx ON public.doctor_reviews(doctor_id);
+CREATE INDEX IF NOT EXISTS doctor_reviews_created_at_idx ON public.doctor_reviews(created_at DESC);
+
+ALTER TABLE public.doctor_reviews ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can read doctor reviews" ON public.doctor_reviews;
+DROP POLICY IF EXISTS "Anyone can insert doctor reviews" ON public.doctor_reviews;
+
+CREATE POLICY "Anyone can read doctor reviews"
+ON public.doctor_reviews
+FOR SELECT
+TO anon, authenticated
+USING (true);
+
+CREATE POLICY "Anyone can insert doctor reviews"
+ON public.doctor_reviews
+FOR INSERT
+TO anon, authenticated
+WITH CHECK (true);
+
+GRANT ALL ON TABLE public.doctor_reviews TO anon, authenticated, service_role;
+
+-- -------------------------------------------------------------
+-- STEP 7: Initial Seed Reviews for Clinical Doctors
+-- -------------------------------------------------------------
+INSERT INTO public.doctor_reviews (
+  user_name, doctor_id, doctor_name, doctor_specialty, rating, title, review_text, consultation_type, tags, created_at
+) VALUES
+(
+  'David K.',
+  'dr-adams',
+  'Dr. Sarah Adams',
+  'Chief Clinical Psychologist & AI Telehealth Lead',
+  5,
+  'Extremely empathetic and thorough AI consultation',
+  'The interactive video consultation with Dr. Adams felt remarkably natural. She listened patiently to my sleep concerns and broke down the PHQ-9 results in a way that made total sense.',
+  'AI Video Telehealth Interview',
+  '["Compassionate", "Accurate Diagnosis", "Great Listener"]'::jsonb,
+  NOW() - INTERVAL '2 days'
+),
+(
+  'Priya M.',
+  'dr-adams',
+  'Dr. Sarah Adams',
+  'Chief Clinical Psychologist & AI Telehealth Lead',
+  5,
+  'Felt heard and validated without judgment',
+  'The voice explanations during the assessment were so gentle and comforting. Highly recommend for anyone feeling anxious about taking their first step.',
+  'AI Video Telehealth Interview',
+  '["Gentle Manner", "Practical Guidance", "Very Empathetic"]'::jsonb,
+  NOW() - INTERVAL '5 days'
+),
+(
+  'Marcus T.',
+  'dr-chen',
+  'Dr. Michael Chen',
+  'Board-Certified Neuropsychiatrist',
+  5,
+  'Insightful breakdown of sleep and cognitive fog',
+  'Dr. Chen was instrumental in identifying how my chronic fatigue was tied to irregular sleep architecture. The coping techniques were immediately applicable.',
+  'Comprehensive Psychiatric Assessment',
+  '["Expertise", "Clear Explanations", "Thoughtful Approach"]'::jsonb,
+  NOW() - INTERVAL '1 week'
+),
+(
+  'Elena R.',
+  'dr-watson',
+  'Dr. Emily Watson',
+  'Senior Cognitive Behavioral Therapist',
+  5,
+  'Actionable CBT strategies for work burnout',
+  'Dr. Watson provided clear, bite-sized cognitive reframing exercises that have genuinely helped me navigate high-stress work weeks.',
+  'Cognitive Behavioral Therapy (CBT)',
+  '["Actionable Advice", "Empathetic", "Structured Plan"]'::jsonb,
+  NOW() - INTERVAL '2 weeks'
+)
+ON CONFLICT DO NOTHING;
+

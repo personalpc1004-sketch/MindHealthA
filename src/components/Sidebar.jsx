@@ -98,20 +98,24 @@ export default function Sidebar() {
             {/* User Profile & Sign Out Footer */}
             {user && (
                 <div className="p-4 border-t border-orange-100 bg-gradient-to-b from-white to-orange-50/40 space-y-3">
-                    <div className="flex items-center gap-3 px-2">
-                        <div className="h-9 w-9 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-sm border border-orange-200 shadow-xs">
+                    <Link
+                        href="/Profile"
+                        className="flex items-center gap-3 px-2 py-1.5 rounded-xl hover:bg-orange-100/70 transition-colors group cursor-pointer"
+                        title="Open Health Profile"
+                    >
+                        <div className="h-9 w-9 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-sm border border-orange-200 shadow-xs group-hover:scale-105 transition-transform">
                             {user.email?.[0]?.toUpperCase() || "U"}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-slate-900 truncate">
+                            <p className="text-xs font-semibold text-slate-900 truncate group-hover:text-orange-700">
                                 {user.email}
                             </p>
                             <p className="text-[10px] font-medium text-orange-600 flex items-center gap-1">
                                 <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse inline-block" />
-                                Active Account
+                                <span>Health Profile</span>
                             </p>
                         </div>
-                    </div>
+                    </Link>
                     <Button
                         variant="outline"
                         size="sm"

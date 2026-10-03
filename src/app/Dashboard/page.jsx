@@ -24,6 +24,7 @@ import {
     AlertCircle,
     Calendar,
     RefreshCw,
+    User,
 } from "lucide-react";
 
 import Link from "next/link";
@@ -269,6 +270,15 @@ export default function Dashboard() {
                             <Download className="h-4 w-4 text-white" />
                             <span>{downloadingId ? "Generating PDF..." : "Download Clinical PDF"}</span>
                         </Button>
+                        <Link href="/Profile">
+                            <Button
+                                variant="outline"
+                                className="bg-white/15 hover:bg-white/25 text-white border-white/30 font-bold px-3 py-2.5 h-auto rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 text-xs"
+                            >
+                                <User className="h-4 w-4 text-white" />
+                                <span>My Profile</span>
+                            </Button>
+                        </Link>
                         <a
                             href="https://mentalhealthaimodel.onrender.com/test"
                             target="_blank"
