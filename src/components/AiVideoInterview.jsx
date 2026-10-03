@@ -706,15 +706,6 @@ export default function AiVideoInterview({
                     style={{ minHeight: "580px" }}
                 >
                     {/* Live status pill */}
-                    <div className="flex items-center gap-2 bg-orange-600/20 border border-orange-500/40 backdrop-blur-md px-4 py-1.5 rounded-full">
-                        <span className="flex h-2 w-2 relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500" />
-                        </span>
-                        <span className="text-xs font-bold uppercase tracking-widest text-orange-300">
-                            AI Clinical Telehealth Session Ready
-                        </span>
-                    </div>
 
                     {/* Doctor avatar */}
                     <div className="relative w-32 h-32 rounded-full overflow-hidden ring-4 ring-orange-500/50 shadow-2xl shadow-orange-500/30">
@@ -734,32 +725,10 @@ export default function AiVideoInterview({
                         <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                             Dr. Sarah Adams, Ph.D.
                         </h2>
-                        <p className="text-slate-300 text-sm flex items-center justify-center gap-1.5">
-                            <ShieldCheck className="h-4 w-4 text-blue-400" />
-                            Lead Clinical Psychologist · MindHealth Telehealth
-                        </p>
-                        <p className="text-slate-400 text-xs sm:text-sm leading-relaxed mt-2">
-                            Dr. Adams will explain each of the 9 PHQ-9 questions aloud through high-fidelity voice
-                            synthesis. Each response updates your live depression severity score and syncs with the
-                            database in real time.
-                        </p>
+
                     </div>
 
-                    {/* Features Badges */}
-                    <div className="flex flex-wrap items-center justify-center gap-3 text-xs text-slate-300">
-                        <span className="flex items-center gap-1.5 bg-slate-900/80 border border-slate-700 px-3 py-1.5 rounded-xl backdrop-blur-sm">
-                            <Volume2 className="h-3.5 w-3.5 text-orange-400" />
-                            Spoken Clinical Questions &amp; Explanations
-                        </span>
-                        <span className="flex items-center gap-1.5 bg-slate-900/80 border border-slate-700 px-3 py-1.5 rounded-xl backdrop-blur-sm">
-                            <Mic className="h-3.5 w-3.5 text-emerald-400" />
-                            Groq Whisper Voice Answers
-                        </span>
-                        <span className="flex items-center gap-1.5 bg-slate-900/80 border border-slate-700 px-3 py-1.5 rounded-xl backdrop-blur-sm">
-                            <Gauge className="h-3.5 w-3.5 text-blue-400" />
-                            Live PHQ-9 Clinical Score (0–27)
-                        </span>
-                    </div>
+
 
                     {/* Start Button: Synchronously unlocks speech audio */}
                     <button

@@ -444,16 +444,7 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="z-10 flex flex-wrap items-center gap-2.5">
-                        <Link href="/Assessment">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="bg-white/15 hover:bg-white/25 text-white border-white/30 text-xs font-semibold gap-1.5 backdrop-blur-sm"
-                            >
-                                <HeartPulse className="h-3.5 w-3.5 text-amber-200" />
-                                <span>Take PHQ-9 Test</span>
-                            </Button>
-                        </Link>
+
                         <Link href="/Interview">
                             <Button
                                 variant="outline"
@@ -472,22 +463,20 @@ export default function ProfilePage() {
                     <div className="flex items-center gap-1.5 w-full sm:w-auto">
                         <button
                             onClick={() => setActiveTab("profile")}
-                            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
-                                activeTab === "profile"
-                                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/25"
-                                    : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
-                            }`}
+                            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === "profile"
+                                ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/25"
+                                : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
+                                }`}
                         >
                             <User className="h-4 w-4" />
                             <span>My Health Profile</span>
                         </button>
                         <button
                             onClick={() => setActiveTab("reviews")}
-                            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${
-                                activeTab === "reviews"
-                                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/25"
-                                    : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
-                            }`}
+                            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 ${activeTab === "reviews"
+                                ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/25"
+                                : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
+                                }`}
                         >
                             <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
                             <span>Doctor Reviews &amp; Ratings ({reviews.length})</span>
@@ -624,20 +613,12 @@ export default function ProfilePage() {
                                                 Age: {age}
                                             </span>
                                         )}
-                                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            Active Record
-                                        </span>
+
                                     </div>
                                 </div>
 
                                 {/* Consultation Info pill */}
-                                <div className="pt-2 border-t border-orange-100 text-left space-y-1.5">
-                                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Target Consultation</p>
-                                    <p className="text-xs font-semibold text-slate-800 bg-orange-50/70 p-2.5 rounded-xl border border-orange-100 flex items-center gap-2">
-                                        <Stethoscope className="h-3.5 w-3.5 text-orange-600 shrink-0" />
-                                        <span className="truncate">{consultationType}</span>
-                                    </p>
-                                </div>
+
                             </div>
 
                             {/* Clinical Assessment History Snapshot */}
@@ -740,11 +721,10 @@ export default function ProfilePage() {
                                                 key={opt}
                                                 type="button"
                                                 onClick={() => setConsultationType(opt)}
-                                                className={`p-3 rounded-xl border text-left text-xs transition-all flex items-center justify-between ${
-                                                    consultationType === opt
-                                                        ? "border-orange-500 bg-orange-50/70 text-orange-950 font-bold ring-2 ring-orange-500/10"
-                                                        : "border-slate-200 text-slate-700 hover:border-orange-200 hover:bg-orange-50/30"
-                                                }`}
+                                                className={`p-3 rounded-xl border text-left text-xs transition-all flex items-center justify-between ${consultationType === opt
+                                                    ? "border-orange-500 bg-orange-50/70 text-orange-950 font-bold ring-2 ring-orange-500/10"
+                                                    : "border-slate-200 text-slate-700 hover:border-orange-200 hover:bg-orange-50/30"
+                                                    }`}
                                             >
                                                 <span>{opt}</span>
                                                 {consultationType === opt && (
@@ -774,11 +754,10 @@ export default function ProfilePage() {
                                                     key={tag}
                                                     type="button"
                                                     onClick={() => toggleProblemTag(tag)}
-                                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all border ${
-                                                        isSelected
-                                                            ? "bg-orange-600 text-white border-orange-600 shadow-xs"
-                                                            : "bg-slate-50 text-slate-600 border-slate-200 hover:border-orange-300 hover:text-orange-700"
-                                                    }`}
+                                                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all border ${isSelected
+                                                        ? "bg-orange-600 text-white border-orange-600 shadow-xs"
+                                                        : "bg-slate-50 text-slate-600 border-slate-200 hover:border-orange-300 hover:text-orange-700"
+                                                        }`}
                                                 >
                                                     {isSelected ? "✓ " : "+ "}
                                                     {tag}
@@ -867,11 +846,10 @@ export default function ProfilePage() {
                                         onClick={() =>
                                             setSelectedDoctorFilter(isSelected ? "all" : doc.id)
                                         }
-                                        className={`bg-white rounded-2xl border p-4 shadow-sm cursor-pointer transition-all duration-200 relative group ${
-                                            isSelected
-                                                ? "border-orange-500 ring-2 ring-orange-500/20 bg-orange-50/40"
-                                                : "border-orange-100 hover:border-orange-300 hover:bg-orange-50/20"
-                                        }`}
+                                        className={`bg-white rounded-2xl border p-4 shadow-sm cursor-pointer transition-all duration-200 relative group ${isSelected
+                                            ? "border-orange-500 ring-2 ring-orange-500/20 bg-orange-50/40"
+                                            : "border-orange-100 hover:border-orange-300 hover:bg-orange-50/20"
+                                            }`}
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className="h-12 w-12 rounded-xl bg-orange-100 text-orange-700 font-bold overflow-hidden border border-orange-200 flex items-center justify-center shrink-0">
@@ -1049,11 +1027,10 @@ export default function ProfilePage() {
                                                     className="p-1 transition-transform hover:scale-125 focus:outline-none"
                                                 >
                                                     <Star
-                                                        className={`h-7 w-7 transition-colors ${
-                                                            (hoverRating || reviewRating) >= star
-                                                                ? "text-amber-400 fill-amber-400"
-                                                                : "text-slate-300"
-                                                        }`}
+                                                        className={`h-7 w-7 transition-colors ${(hoverRating || reviewRating) >= star
+                                                            ? "text-amber-400 fill-amber-400"
+                                                            : "text-slate-300"
+                                                            }`}
                                                     />
                                                 </button>
                                             ))}
@@ -1099,11 +1076,10 @@ export default function ProfilePage() {
                                                     key={tag}
                                                     type="button"
                                                     onClick={() => toggleReviewTag(tag)}
-                                                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all border ${
-                                                        isSelected
-                                                            ? "bg-orange-500 text-white border-orange-500 shadow-xs"
-                                                            : "bg-slate-50 text-slate-600 border-slate-200 hover:border-orange-200"
-                                                    }`}
+                                                    className={`px-3 py-1 rounded-lg text-xs font-medium transition-all border ${isSelected
+                                                        ? "bg-orange-500 text-white border-orange-500 shadow-xs"
+                                                        : "bg-slate-50 text-slate-600 border-slate-200 hover:border-orange-200"
+                                                        }`}
                                                 >
                                                     {isSelected ? "✓ " : "+ "}
                                                     {tag}
@@ -1199,11 +1175,10 @@ export default function ProfilePage() {
                                                 {[...Array(5)].map((_, i) => (
                                                     <Star
                                                         key={i}
-                                                        className={`h-3.5 w-3.5 ${
-                                                            i < (rev.rating || 5)
-                                                                ? "text-amber-400 fill-amber-400"
-                                                                : "text-slate-300"
-                                                        }`}
+                                                        className={`h-3.5 w-3.5 ${i < (rev.rating || 5)
+                                                            ? "text-amber-400 fill-amber-400"
+                                                            : "text-slate-300"
+                                                            }`}
                                                     />
                                                 ))}
                                                 <span className="text-xs font-bold text-amber-900 ml-1">{rev.rating || 5}.0</span>

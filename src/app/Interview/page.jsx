@@ -229,8 +229,8 @@ export default function AiInterviewPage() {
             preset === "severe"
                 ? [3, 3, 2, 3, 2, 3, 2, 2, 1]
                 : preset === "moderate"
-                ? [2, 1, 2, 1, 1, 1, 2, 1, 0]
-                : [1, 0, 1, 1, 0, 1, 0, 0, 0];
+                    ? [2, 1, 2, 1, 1, 1, 2, 1, 0]
+                    : [1, 0, 1, 1, 0, 1, 0, 0, 0];
 
         questionsList.forEach((q, idx) => {
             newAnswers[q.key] = presetValues[idx] ?? 1;
@@ -302,15 +302,12 @@ export default function AiInterviewPage() {
                     <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
 
                     <div className="space-y-1.5 z-10 max-w-xl">
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/10 text-white text-xs font-medium backdrop-blur-sm border border-white/20">
-                            <Video className="h-3.5 w-3.5 text-amber-200" />
-                            <span>Interactive Telehealth AI Interview</span>
-                        </div>
+
                         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-                            AI Clinical Video Interview
+                            AI Clinical Checkup
                         </h1>
                         <p className="text-orange-100 text-xs sm:text-sm leading-relaxed">
-                            Experience a realistic voice & video clinical assessment. The AI doctor speaks each question, your webcam stream is displayed live, and you can speak your answers directly.
+                            Experience a realistic voice & video clinical Checkup. The AI doctor speaks each question, your webcam stream is displayed live, and you can speak your answers directly.
                         </p>
                     </div>
 
@@ -470,9 +467,8 @@ export default function AiInterviewPage() {
                                                 </div>
                                                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                                                     <div
-                                                        className={`h-full rounded-full transition-all duration-500 ${
-                                                            isPredicted ? "bg-orange-500" : "bg-slate-300"
-                                                        }`}
+                                                        className={`h-full rounded-full transition-all duration-500 ${isPredicted ? "bg-orange-500" : "bg-slate-300"
+                                                            }`}
                                                         style={{ width: `${pct}%` }}
                                                     />
                                                 </div>
@@ -581,8 +577,8 @@ export default function AiInterviewPage() {
                                             item.status === "completed"
                                                 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                                 : item.status === "failed"
-                                                ? "bg-rose-50 text-rose-700 border-rose-200"
-                                                : "bg-amber-50 text-amber-700 border-amber-200";
+                                                    ? "bg-rose-50 text-rose-700 border-rose-200"
+                                                    : "bg-amber-50 text-amber-700 border-amber-200";
 
                                         return (
                                             <tr key={item.id} className="hover:bg-orange-50/40 transition-colors">
