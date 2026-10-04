@@ -221,7 +221,7 @@ export default function AssessmentPage() {
         const load = () => {
             try {
                 window.speechSynthesis.getVoices();
-            } catch {}
+            } catch { }
         };
         load();
         if ("onvoiceschanged" in window.speechSynthesis) {
@@ -298,7 +298,7 @@ export default function AssessmentPage() {
             try {
                 groqAudioRef.current.pause();
                 groqAudioRef.current.currentTime = 0;
-            } catch {}
+            } catch { }
             groqAudioRef.current = null;
         }
 
@@ -385,8 +385,8 @@ export default function AssessmentPage() {
                     answer: value,
                     answers: newAnswers,
                 }),
-            }).catch(() => {});
-        } catch {}
+            }).catch(() => { });
+        } catch { }
     };
 
     const handleNext = () => {
@@ -410,8 +410,8 @@ export default function AssessmentPage() {
             preset === "severe"
                 ? [3, 3, 2, 3, 2, 3, 2, 2, 1]
                 : preset === "moderate"
-                ? [2, 1, 2, 1, 1, 1, 2, 1, 0]
-                : [1, 0, 1, 1, 0, 1, 0, 0, 0];
+                    ? [2, 1, 2, 1, 1, 1, 2, 1, 0]
+                    : [1, 0, 1, 1, 0, 1, 0, 0, 0];
 
         questionsList.forEach((q, idx) => {
             newAnswers[q.key] = presetValues[idx] ?? 1;
@@ -580,22 +580,20 @@ export default function AssessmentPage() {
                         <div className="flex items-center gap-1.5 w-full sm:w-auto">
                             <button
                                 onClick={() => setMode("interview")}
-                                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                    mode === "interview"
-                                        ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm"
-                                        : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
-                                }`}
+                                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${mode === "interview"
+                                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm"
+                                    : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
+                                    }`}
                             >
                                 <Video className="h-4 w-4" />
-                                <span>AI Video Interview (Voice + Camera)</span>
+                                <span>AI Video Consultation</span>
                             </button>
                             <button
                                 onClick={() => setMode("standard")}
-                                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                                    mode === "standard"
-                                        ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm"
-                                        : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
-                                }`}
+                                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${mode === "standard"
+                                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-sm"
+                                    : "text-slate-600 hover:text-orange-600 hover:bg-orange-50"
+                                    }`}
                             >
                                 <Brain className="h-4 w-4" />
                                 <span>Standard Questionnaire</span>
@@ -679,28 +677,25 @@ export default function AssessmentPage() {
                                             key={opt.value}
                                             type="button"
                                             onClick={() => handleSelectAnswer(opt.value)}
-                                            className={`p-4 rounded-2xl border text-left transition-all duration-200 flex items-center justify-between group ${
-                                                isSelected
-                                                    ? "border-orange-500 bg-orange-50/70 shadow-sm ring-2 ring-orange-500/20"
-                                                    : "border-slate-200 hover:border-orange-200 hover:bg-orange-50/30"
-                                            }`}
+                                            className={`p-4 rounded-2xl border text-left transition-all duration-200 flex items-center justify-between group ${isSelected
+                                                ? "border-orange-500 bg-orange-50/70 shadow-sm ring-2 ring-orange-500/20"
+                                                : "border-slate-200 hover:border-orange-200 hover:bg-orange-50/30"
+                                                }`}
                                         >
                                             <div className="space-y-1">
                                                 <p
-                                                    className={`text-sm font-bold ${
-                                                        isSelected ? "text-orange-950" : "text-slate-800"
-                                                    }`}
+                                                    className={`text-sm font-bold ${isSelected ? "text-orange-950" : "text-slate-800"
+                                                        }`}
                                                 >
                                                     {opt.label}
                                                 </p>
                                                 <p className="text-[11px] text-slate-400">{opt.description}</p>
                                             </div>
                                             <div
-                                                className={`h-6 w-6 rounded-full border flex items-center justify-center transition-colors ${
-                                                    isSelected
-                                                        ? "border-orange-600 bg-orange-600 text-white"
-                                                        : "border-slate-300 group-hover:border-orange-300"
-                                                }`}
+                                                className={`h-6 w-6 rounded-full border flex items-center justify-center transition-colors ${isSelected
+                                                    ? "border-orange-600 bg-orange-600 text-white"
+                                                    : "border-slate-300 group-hover:border-orange-300"
+                                                    }`}
                                             >
                                                 {isSelected && <CheckCircle2 className="h-4 w-4" />}
                                             </div>
@@ -821,9 +816,8 @@ export default function AssessmentPage() {
                                                 </div>
                                                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                                                     <div
-                                                        className={`h-full rounded-full transition-all duration-500 ${
-                                                            isPredicted ? "bg-orange-500" : "bg-slate-300"
-                                                        }`}
+                                                        className={`h-full rounded-full transition-all duration-500 ${isPredicted ? "bg-orange-500" : "bg-slate-300"
+                                                            }`}
                                                         style={{ width: `${pct}%` }}
                                                     />
                                                 </div>
@@ -835,15 +829,7 @@ export default function AssessmentPage() {
                         )}
 
                         {/* Disclaimer */}
-                        <div className="rounded-2xl bg-slate-50 border border-slate-200/70 p-4 text-xs text-slate-500 flex items-start gap-3 leading-relaxed">
-                            <ShieldAlert className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-                            <p>
-                                <strong>Clinical Disclaimer:</strong> This assessment result is generated
-                                by a trained machine learning model based on your reported responses.
-                                It does not constitute an official psychiatric diagnosis or clinical evaluation.
-                                If you are experiencing distress, please consult a qualified healthcare provider.
-                            </p>
-                        </div>
+
 
                         {/* Action Buttons */}
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
@@ -933,8 +919,8 @@ export default function AssessmentPage() {
                                             item.status === "completed"
                                                 ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                                                 : item.status === "failed"
-                                                ? "bg-rose-50 text-rose-700 border-rose-200"
-                                                : "bg-amber-50 text-amber-700 border-amber-200";
+                                                    ? "bg-rose-50 text-rose-700 border-rose-200"
+                                                    : "bg-amber-50 text-amber-700 border-amber-200";
 
                                         return (
                                             <tr key={item.id} className="hover:bg-orange-50/40 transition-colors">
