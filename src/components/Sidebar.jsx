@@ -29,9 +29,9 @@ export default function Sidebar() {
         { href: "/Interview", label: "AI Consulting", icon: Video, },
 
         { href: "/Chatbot", label: "AI Medical Chat", icon: Bot },
-        { href: "/Journal", label: "Journal", icon: BookOpen },
+
         { href: "/Exercises", label: "Exercises", icon: Activity },
-        { href: "/Tools", label: "Tools", icon: Wrench },
+
         { href: "/Profile", label: "Profile", icon: User },
     ];
 
